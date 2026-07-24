@@ -15,6 +15,7 @@ export type SectionKey =
   | "hero"
   | "stats"
   | "findings"
+  | "breakdown"
   | "about"
   | "services"
   | "gallery"
@@ -36,6 +37,11 @@ export interface FindingItem {
   title: string;
   detail?: string;
   action?: string;
+}
+export interface BreakdownRow {
+  label: string;
+  value: number;
+  caption?: string;
 }
 export interface ServiceItem {
   name: string;
@@ -70,6 +76,7 @@ export interface NormalizedTenant {
   hero: { headline: string; sub?: string; image?: string; ctas: Cta[] };
   stats?: { title?: string; items: StatItem[] };
   findings?: { title?: string; items: FindingItem[] };
+  breakdown?: { title?: string; note?: string; max: number; rows: BreakdownRow[] };
   about?: { title?: string; body: string };
   services?: { title?: string; items: ServiceItem[] };
   gallery?: { title?: string; images: GalleryImage[] };
@@ -88,6 +95,7 @@ const DEFAULT_ORDER: SectionKey[] = [
   "hero",
   "stats",
   "findings",
+  "breakdown",
   "about",
   "services",
   "gallery",
@@ -114,6 +122,11 @@ function str(v: unknown): string | undefined {
   if (typeof v !== "string") return undefined;
   const s = v.trim();
   return s.length ? s : undefined;
+}
+
+function num(v: unknown): number | undefined {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v.trim()) : NaN;
+  return Number.isFinite(n) ? n : undefined;
 }
 
 function asArray(v: unknown): unknown[] {
@@ -228,6 +241,30 @@ export function normalizeTenant(
     ? { title: str(findingsObj.title), items: findingItems }
     : undefined;
 
+  // breakdown — bars need a positive scale. If nothing usable survives, the
+  // section vanishes rather than drawing an empty axis.
+  const breakdownObj = obj(sections.breakdown);
+  const breakdownRows = asArray(breakdownObj.rows).flatMap<BreakdownRow>((r) => {
+    const o = obj(r);
+    const label = str(o.label);
+    const value = num(o.value);
+    if (!label || value === undefined || value < 0) return [];
+    return [{ label, value, caption: str(o.caption) }];
+  });
+  const declaredMax = num(breakdownObj.max);
+  const derivedMax = breakdownRows.reduce((m, r) => Math.max(m, r.value), 0);
+  const breakdownMax =
+    declaredMax !== undefined && declaredMax > 0 ? declaredMax : derivedMax;
+  const breakdown =
+    breakdownRows.length && breakdownMax > 0
+      ? {
+          title: str(breakdownObj.title),
+          note: str(breakdownObj.note),
+          max: breakdownMax,
+          rows: breakdownRows,
+        }
+      : undefined;
+
   // about — only with body copy
   const aboutObj = obj(sections.about);
   const aboutBody = str(aboutObj.body);
@@ -296,6 +333,7 @@ export function normalizeTenant(
     hero,
     stats,
     findings,
+    breakdown,
     about,
     services,
     gallery,

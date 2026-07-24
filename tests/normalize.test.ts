@@ -83,3 +83,40 @@ test("findings vanishes with no titled item", () => {
   const t = normalizeTenant("x", { sections: { findings: { items: [{ detail: "x" }] } } });
   assert.equal(t.findings, undefined);
 });
+
+test("breakdown keeps numeric rows and derives max", () => {
+  const t = normalizeTenant("x", {
+    sections: {
+      breakdown: {
+        title: "By size",
+        note: "Measured 25 Jul",
+        rows: [
+          { label: "White / XL", value: 85 },
+          { label: "Black / L", value: "74", caption: "62 of 84" },
+          { label: "bad", value: "abc" },
+          { label: "negative", value: -5 },
+          { value: 10 },
+        ],
+      },
+    },
+  });
+  assert.equal(t.breakdown?.rows.length, 2);
+  assert.equal(t.breakdown?.max, 85);
+  assert.equal(t.breakdown?.rows[1].value, 74);
+  assert.equal(t.breakdown?.rows[1].caption, "62 of 84");
+  assert.equal(t.breakdown?.note, "Measured 25 Jul");
+});
+
+test("breakdown honours an explicit max", () => {
+  const t = normalizeTenant("x", {
+    sections: { breakdown: { max: 100, rows: [{ label: "a", value: 50 }] } },
+  });
+  assert.equal(t.breakdown?.max, 100);
+});
+
+test("breakdown vanishes when every value is zero or unusable", () => {
+  for (const rows of [[{ label: "a", value: 0 }], [{ label: "a", value: "x" }], []]) {
+    const t = normalizeTenant("x", { sections: { breakdown: { rows } } });
+    assert.equal(t.breakdown, undefined);
+  }
+});
