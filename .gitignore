@@ -32,3 +32,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .vscode/
+
+# deployment config (hostnames are tenant data, not source)
+/deploy/.env
+
+# build artefacts
+tsconfig.tsbuildinfo

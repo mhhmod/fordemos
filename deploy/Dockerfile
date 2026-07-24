@@ -9,9 +9,11 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
 
-# Install dependencies against the lockfile first for cacheable layers.
+# Install ALL dependencies (incl. dev) so the build toolchain — prisma,
+# typescript, tailwind — and the tsx-based tenant scripts are available.
+# Runtime NODE_ENV=production is set by compose, not baked here, so `npm ci`
+# does not omit devDependencies.
 COPY package.json package-lock.json* ./
 RUN npm ci
 

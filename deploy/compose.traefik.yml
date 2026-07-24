@@ -1,0 +1,47 @@
+# The platform, integrated behind an EXISTING Traefik that already owns :80/:443.
+#
+# Use this compose file when the host ALREADY runs Traefik with an ACME
+# resolver and other services on a shared network — standing up the bundled
+# Caddy instead would fight for the ports, and a broad SNI catch-all would
+# hijack sibling subdomains that other services already serve.
+#
+# The app joins the existing proxy network and registers ONE router, exactly the
+# way every other service on such a host does.
+#
+# No tenant identifier appears in this file. The hostnames served are deployment
+# configuration, supplied via deploy/.env (git-ignored) — see .env.example.
+# Adding a tenant is still a record; adding a tenant on a NEW hostname also
+# means extending DEMO_ROUTER_RULE and `docker compose up -d` (no rebuild).
+name: grindctrl-demos
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    environment:
+      # The tenant store, on a host volume so it survives redeploys.
+      DATABASE_URL: "file:/data/app.db"
+      BASE_DOMAIN: "${BASE_DOMAIN:?set BASE_DOMAIN in deploy/.env}"
+      NODE_ENV: "production"
+    volumes:
+      - "${DATA_DIR:-/srv/grindctrl/data}:/data"
+    expose:
+      - "3000"
+    networks:
+      - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "${PROXY_NETWORK:?set PROXY_NETWORK in deploy/.env}"
+      traefik.http.routers.grindctrl-demos.rule: "${DEMO_ROUTER_RULE:?set DEMO_ROUTER_RULE in deploy/.env}"
+      traefik.http.routers.grindctrl-demos.entrypoints: "web,websecure"
+      traefik.http.routers.grindctrl-demos.tls: "true"
+      traefik.http.routers.grindctrl-demos.tls.certresolver: "${ACME_RESOLVER:?set ACME_RESOLVER in deploy/.env}"
+      traefik.http.routers.grindctrl-demos.priority: "10"
+      traefik.http.services.grindctrl-demos.loadbalancer.server.port: "3000"
+    restart: unless-stopped
+
+networks:
+  proxy:
+    name: "${PROXY_NETWORK:?set PROXY_NETWORK in deploy/.env}"
+    external: true
