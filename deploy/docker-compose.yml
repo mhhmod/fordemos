@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    environment:
+      # The tenant store. Lives on a host volume so it survives redeploys and
+      # is trivial to back up. Adding/editing a tenant never touches the image.
+      DATABASE_URL: "file:/data/app.db"
+      # Subdomains are resolved under this base domain.
+      BASE_DOMAIN: "grindctrl.cloud"
+      NODE_ENV: "production"
+    volumes:
+      - /srv/grindctrl/data:/data
+    expose:
+      - "3000"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /srv/grindctrl/caddy/data:/data
+      - /srv/grindctrl/caddy/config:/config
+    restart: unless-stopped

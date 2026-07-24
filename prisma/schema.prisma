@@ -1,0 +1,33 @@
+// One deployment serves every tenant. A tenant is one row. Onboarding a
+// business is inserting a record here — no build, no deploy, no branch.
+
+generator client {
+  provider      = "prisma-client-js"
+  // "native" for local dev; the debian target matches the node:slim runtime image.
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  // The subdomain label under the base domain, e.g. "acme" for
+  // acme.grindctrl.cloud. This is the request-time resolution key.
+  subdomain String   @unique
+  // "published" renders; anything else (e.g. "offline") is the instant,
+  // per-tenant kill switch — no redeploy, effective on the next request.
+  status    String   @default("published")
+  // Optional extra hostnames (a future custom domain), JSON array of strings.
+  hostnames String   @default("[]")
+  // The full presentation record as authored, JSON. Everything a brand owns —
+  // its name, words, colours, type, services, prices, images, language and
+  // text direction — lives here as data, never in the source.
+  config    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}

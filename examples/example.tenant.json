@@ -1,0 +1,69 @@
+{
+  "id": "example",
+  "status": "published",
+  "hostnames": [],
+  "locale": { "lang": "en", "dir": "ltr" },
+  "brand": {
+    "name": "Example Studio",
+    "tagline": "Design that earns attention",
+    "logo": { "src": "", "alt": "" }
+  },
+  "theme": {
+    "palette": {
+      "primary": "#2b2440",
+      "bg": "#ffffff",
+      "text": "#1a1723",
+      "accent": "#6c5ce7"
+    },
+    "font": { "heading": "", "body": "", "url": "" },
+    "radius": "18px"
+  },
+  "sections": {
+    "order": ["hero", "about", "services", "gallery", "hours", "contact"],
+    "hero": {
+      "headline": "A calmer way to run your day-to-day",
+      "sub": "Everything below is placeholder copy — replace it with the tenant's own words.",
+      "image": "",
+      "ctas": [
+        { "label": "Book a table", "href": "https://example.com/book" },
+        { "label": "See the menu", "href": "#services" }
+      ]
+    },
+    "about": {
+      "title": "About",
+      "body": "One or two short paragraphs in the business's own voice. Omit this whole block and the section simply disappears."
+    },
+    "services": {
+      "title": "What we offer",
+      "items": [
+        { "name": "Signature service", "desc": "Short description.", "price": "$40" },
+        { "name": "A second offering", "desc": "Another line.", "price": "$25" },
+        { "name": "Something else", "desc": "No price? The tag just won't show." }
+      ]
+    },
+    "gallery": {
+      "title": "A look around",
+      "images": []
+    },
+    "hours": {
+      "title": "Hours",
+      "rows": [
+        { "label": "Mon–Fri", "value": "9:00 – 18:00" },
+        { "label": "Saturday", "value": "10:00 – 16:00" },
+        { "label": "Sunday", "value": "Closed" }
+      ]
+    },
+    "contact": {
+      "title": "Find us",
+      "phone": "+1 555 010 2030",
+      "email": "hello@example.com",
+      "address": "12 Placeholder Street, Anytown",
+      "map": "https://maps.google.com/?q=Anytown",
+      "socials": [
+        { "type": "instagram", "href": "https://instagram.com/example" },
+        { "type": "whatsapp", "href": "https://wa.me/15550102030" }
+      ]
+    }
+  },
+  "demo": { "note": "" }
+}

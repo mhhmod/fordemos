@@ -1,0 +1,28 @@
+# Automatic HTTPS for the apex and every tenant subdomain, with certificates
+# issued ON DEMAND — so adding a tenant needs no proxy or certificate change.
+#
+# The `ask` endpoint means a certificate is only ever minted for the apex or a
+# known, published tenant; unknown or offline hosts are refused.
+
+{
+	email admin@grindctrl.cloud
+	on_demand_tls {
+		ask http://app:3000/api/tls-check
+	}
+}
+
+# Redirect plain HTTP to HTTPS. (On-demand issuance uses TLS-ALPN on :443, so
+# this redirect does not interfere with certificate validation.)
+:80 {
+	redir https://{host}{uri} 308
+}
+
+# Catch-all HTTPS listener: matches any SNI (apex + all subdomains) and proxies
+# to the app. Certificates are obtained on demand, gated by `ask` above.
+:443 {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	reverse_proxy app:3000
+}
