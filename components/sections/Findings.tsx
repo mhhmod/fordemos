@@ -24,14 +24,14 @@ export function Findings({
               {item.rank}
             </span>
             <div className="min-w-0">
-              <h3 className="font-heading text-lg font-semibold text-fg">
+              <h3 className="font-heading text-lg font-semibold break-words text-fg">
                 {item.title}
               </h3>
               {item.detail ? (
-                <p className="mt-2 leading-relaxed text-muted">{item.detail}</p>
+                <p className="mt-2 break-words leading-relaxed text-muted">{item.detail}</p>
               ) : null}
               {item.action ? (
-                <p className="mt-3 text-sm font-medium text-accent">
+                <p className="mt-3 break-words text-sm font-medium text-accent">
                   {item.action}
                 </p>
               ) : null}

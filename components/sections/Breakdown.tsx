@@ -24,7 +24,7 @@ export function Breakdown({
           return (
             <div
               key={i}
-              className="grid grid-cols-[5rem_1fr_auto] items-center gap-3 sm:grid-cols-[8rem_1fr_auto] sm:gap-4"
+              className="grid grid-cols-[5rem_1fr_minmax(0,max-content)] items-center gap-3 sm:grid-cols-[8rem_1fr_minmax(0,max-content)] sm:gap-4"
             >
               <dt className="truncate text-sm text-muted">{row.label}</dt>
               <div

@@ -19,7 +19,7 @@ export function Stats({
         {stats.items.map((item, i) => (
           <div key={i} className="bg-canvas p-6">
             <div
-              className={`font-heading text-[clamp(1.9rem,5vw,2.6rem)] font-bold leading-none ${
+              className={`font-heading text-[clamp(1.9rem,5vw,2.6rem)] font-bold leading-none break-words ${
                 item.emphasis ? "text-accent" : "text-fg"
               }`}
             >

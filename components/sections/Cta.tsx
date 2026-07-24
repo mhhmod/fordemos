@@ -22,7 +22,7 @@ export function Cta({ cta }: { cta: NonNullable<NormalizedTenant["cta"]> }) {
                 <a
                   key={i}
                   href={a.href}
-                  className="inline-block rounded-full bg-primary px-7 py-3 font-semibold text-on-primary"
+                  className="inline-block break-words rounded-full bg-primary px-7 py-3 font-semibold text-on-primary"
                 >
                   {a.label}
                 </a>
@@ -30,7 +30,7 @@ export function Cta({ cta }: { cta: NonNullable<NormalizedTenant["cta"]> }) {
                 <a
                   key={i}
                   href={a.href}
-                  className="font-medium text-fg underline underline-offset-4"
+                  className="font-medium break-words text-fg underline underline-offset-4"
                 >
                   {a.label}
                 </a>
