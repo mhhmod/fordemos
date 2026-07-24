@@ -6,6 +6,8 @@ import { Hero } from "@/components/sections/Hero";
 import { Stats } from "@/components/sections/Stats";
 import { Findings } from "@/components/sections/Findings";
 import { Breakdown } from "@/components/sections/Breakdown";
+import { Compare } from "@/components/sections/Compare";
+import { Signature } from "@/components/sections/Signature";
 import { Cta } from "@/components/sections/Cta";
 import { About } from "@/components/sections/About";
 import { Services } from "@/components/sections/Services";
@@ -34,6 +36,8 @@ export default async function Page() {
     stats: d.stats ? <Stats stats={d.stats} /> : null,
     findings: d.findings ? <Findings findings={d.findings} /> : null,
     breakdown: d.breakdown ? <Breakdown breakdown={d.breakdown} /> : null,
+    compare: d.compare ? <Compare compare={d.compare} /> : null,
+    signature: d.signature ? <Signature signature={d.signature} /> : null,
     about: d.about ? <About about={d.about} /> : null,
     services: d.services ? <Services services={d.services} /> : null,
     gallery: d.gallery ? <Gallery gallery={d.gallery} /> : null,

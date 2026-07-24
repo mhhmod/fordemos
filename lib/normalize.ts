@@ -16,12 +16,21 @@ export type SectionKey =
   | "stats"
   | "findings"
   | "breakdown"
+  | "compare"
   | "about"
   | "services"
   | "gallery"
   | "hours"
   | "contact"
+  | "signature"
   | "cta";
+
+export interface ComparePanel {
+  label: string;
+  title?: string;
+  body?: string;
+  image?: string;
+}
 
 export interface Cta {
   label: string;
@@ -77,7 +86,27 @@ export interface NormalizedTenant {
   hero: { headline: string; sub?: string; image?: string; ctas: Cta[] };
   stats?: { title?: string; items: StatItem[] };
   findings?: { title?: string; items: FindingItem[] };
-  breakdown?: { title?: string; note?: string; max: number; rows: BreakdownRow[] };
+  breakdown?: {
+    title?: string;
+    note?: string;
+    unit?: string;
+    max: number;
+    rows: BreakdownRow[];
+  };
+  compare?: {
+    title?: string;
+    note?: string;
+    before: ComparePanel;
+    after: ComparePanel;
+  };
+  signature?: {
+    title?: string;
+    name: string;
+    role?: string;
+    note?: string;
+    avatar?: string;
+    proof: string[];
+  };
   cta?: { title?: string; body?: string; actions: Cta[] };
   about?: { title?: string; body: string };
   services?: { title?: string; items: ServiceItem[] };
@@ -98,11 +127,13 @@ const DEFAULT_ORDER: SectionKey[] = [
   "stats",
   "findings",
   "breakdown",
+  "compare",
   "about",
   "services",
   "gallery",
   "hours",
   "contact",
+  "signature",
   "cta",
 ];
 
@@ -273,10 +304,57 @@ export function normalizeTenant(
       ? {
           title: str(breakdownObj.title),
           note: str(breakdownObj.note),
+          unit: str(breakdownObj.unit),
           max: breakdownMax,
           rows: breakdownRows,
         }
       : undefined;
+
+  // compare — a before/after pair. Both panels must carry a label, otherwise
+  // there is no comparison to draw and the section vanishes.
+  const compareObj = obj(sections.compare);
+  function panel(v: unknown): ComparePanel | undefined {
+    const o = obj(v);
+    const label = str(o.label);
+    if (!label) return undefined;
+    return {
+      label,
+      title: str(o.title),
+      body: str(o.body),
+      image: safeUrl(o.image),
+    };
+  }
+  const beforePanel = panel(compareObj.before);
+  const afterPanel = panel(compareObj.after);
+  const compare =
+    beforePanel && afterPanel
+      ? {
+          title: str(compareObj.title),
+          note: str(compareObj.note),
+          before: beforePanel,
+          after: afterPanel,
+        }
+      : undefined;
+
+  // signature — who is speaking. Needs a name; an unsigned block would be
+  // worse than none at all.
+  const signatureObj = obj(sections.signature);
+  const signerName = str(signatureObj.name);
+  const signature = signerName
+    ? {
+        title: str(signatureObj.title),
+        name: signerName,
+        role: str(signatureObj.role),
+        note: str(signatureObj.note),
+        avatar: safeUrl(signatureObj.avatar),
+        proof: asArray(signatureObj.proof)
+          .flatMap((x) => {
+            const t = str(x);
+            return t ? [t] : [];
+          })
+          .slice(0, 4),
+      }
+    : undefined;
 
   // cta — the closing ask. Survives on copy alone; vanishes only when it has
   // neither words nor a usable action.
@@ -358,6 +436,8 @@ export function normalizeTenant(
     stats,
     findings,
     breakdown,
+    compare,
+    signature,
     about,
     services,
     gallery,

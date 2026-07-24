@@ -38,6 +38,9 @@ export function Breakdown({
               </div>
               <dd className="text-end text-sm font-semibold tabular-nums text-fg">
                 {row.value}
+                {breakdown.unit ? (
+                  <span aria-hidden="true">{breakdown.unit}</span>
+                ) : null}
                 {row.caption ? (
                   <span className="ms-2 font-normal text-muted">{row.caption}</span>
                 ) : null}

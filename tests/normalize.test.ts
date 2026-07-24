@@ -208,3 +208,67 @@ test("an inherited object key cannot become a social label", () => {
   assert.equal(typeof t.contact?.socials[0].label, "string");
   assert.equal(t.contact?.socials[0].label, "Constructor");
 });
+
+test("compare needs both panels labelled or it vanishes", () => {
+  const ok = normalizeTenant("x", {
+    sections: {
+      compare: {
+        title: "Before and after",
+        before: { label: "Now", body: "empty", image: "https://e.com/a.jpg" },
+        after: { label: "Fixed", title: "T", body: "written" },
+      },
+    },
+  });
+  assert.equal(ok.compare?.before.label, "Now");
+  assert.equal(ok.compare?.after.title, "T");
+  assert.equal(ok.compare?.before.image, "https://e.com/a.jpg");
+
+  for (const bad of [
+    { before: { label: "Now" } },
+    { after: { label: "Fixed" } },
+    { before: { body: "no label" }, after: { label: "Fixed" } },
+  ]) {
+    assert.equal(normalizeTenant("x", { sections: { compare: bad } }).compare, undefined);
+  }
+});
+
+test("compare drops an unsafe panel image but keeps the panel", () => {
+  const t = normalizeTenant("x", {
+    sections: {
+      compare: {
+        before: { label: "A", image: "javascript:alert(1)" },
+        after: { label: "B" },
+      },
+    },
+  });
+  assert.equal(t.compare?.before.image, undefined);
+  assert.equal(t.compare?.before.label, "A");
+});
+
+test("signature requires a name and caps its proof points", () => {
+  const t = normalizeTenant("x", {
+    sections: {
+      signature: {
+        name: "A Person",
+        role: "Role",
+        avatar: "https://e.com/p.jpg",
+        proof: ["one", "two", "three", "four", "five", ""],
+      },
+    },
+  });
+  assert.equal(t.signature?.name, "A Person");
+  assert.equal(t.signature?.proof.length, 4);
+  assert.equal(normalizeTenant("x", { sections: { signature: { role: "Only role" } } }).signature, undefined);
+});
+
+test("breakdown carries an optional display unit", () => {
+  const t = normalizeTenant("x", {
+    sections: { breakdown: { unit: "%", rows: [{ label: "a", value: 50 }] } },
+  });
+  assert.equal(t.breakdown?.unit, "%");
+  assert.equal(
+    normalizeTenant("x", { sections: { breakdown: { rows: [{ label: "a", value: 50 }] } } })
+      .breakdown?.unit,
+    undefined,
+  );
+});
