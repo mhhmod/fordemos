@@ -69,7 +69,7 @@ cta:       { title?, body?, actions: [{ label, href }] }
 Consistent with existing sections:
 
 - A section renders only if it has at least one valid item, otherwise it is `undefined` and never appears.
-- Items missing their required field (`label` for stats, `title` for findings, `label`+numeric `value` for breakdown rows) are dropped individually.
+- Items missing a required field are dropped individually: `label`+`value` for stats, `title` for findings, `label`+finite non-negative `value` for breakdown rows, `label`+safe `href` for cta actions. A stat tile without a value would be an empty frame, so both fields are required.
 - `max` defaults to the largest `value` in the set; if all values are 0 or non-numeric, the section vanishes rather than drawing empty bars.
 - `cta` actions reuse `safeUrl`, so only `http`, `https`, `mailto`, `tel`, and root-relative links are emitted.
 - Malformed input never throws; a broken record still renders a composed page.
