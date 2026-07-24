@@ -20,7 +20,8 @@ export type SectionKey =
   | "services"
   | "gallery"
   | "hours"
-  | "contact";
+  | "contact"
+  | "cta";
 
 export interface Cta {
   label: string;
@@ -77,6 +78,7 @@ export interface NormalizedTenant {
   stats?: { title?: string; items: StatItem[] };
   findings?: { title?: string; items: FindingItem[] };
   breakdown?: { title?: string; note?: string; max: number; rows: BreakdownRow[] };
+  cta?: { title?: string; body?: string; actions: Cta[] };
   about?: { title?: string; body: string };
   services?: { title?: string; items: ServiceItem[] };
   gallery?: { title?: string; images: GalleryImage[] };
@@ -101,6 +103,7 @@ const DEFAULT_ORDER: SectionKey[] = [
   "gallery",
   "hours",
   "contact",
+  "cta",
 ];
 
 const SOCIAL_LABELS: Record<string, string> = {
@@ -265,6 +268,23 @@ export function normalizeTenant(
         }
       : undefined;
 
+  // cta — the closing ask. Survives on copy alone; vanishes only when it has
+  // neither words nor a usable action.
+  const ctaObj = obj(sections.cta);
+  const ctaTitle = str(ctaObj.title);
+  const ctaBody = str(ctaObj.body);
+  const ctaActions = asArray(ctaObj.actions)
+    .flatMap<Cta>((a) => {
+      const label = str(obj(a).label);
+      const href = safeUrl(obj(a).href);
+      return label && href ? [{ label, href }] : [];
+    })
+    .slice(0, 3);
+  const cta =
+    ctaTitle || ctaBody || ctaActions.length
+      ? { title: ctaTitle, body: ctaBody, actions: ctaActions }
+      : undefined;
+
   // about — only with body copy
   const aboutObj = obj(sections.about);
   const aboutBody = str(aboutObj.body);
@@ -339,5 +359,6 @@ export function normalizeTenant(
     gallery,
     hours,
     contact,
+    cta,
   };
 }

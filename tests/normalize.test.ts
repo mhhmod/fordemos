@@ -120,3 +120,27 @@ test("breakdown vanishes when every value is zero or unusable", () => {
     assert.equal(t.breakdown, undefined);
   }
 });
+
+test("cta keeps safe actions and drops unsafe ones", () => {
+  const t = normalizeTenant("x", {
+    sections: {
+      cta: {
+        title: "Want the rest?",
+        body: "Reply and it's yours.",
+        actions: [
+          { label: "Reply", href: "https://instagram.com/example" },
+          { label: "Bad", href: "javascript:alert(1)" },
+          { label: "No href" },
+        ],
+      },
+    },
+  });
+  assert.equal(t.cta?.actions.length, 1);
+  assert.equal(t.cta?.actions[0].label, "Reply");
+  assert.equal(t.cta?.title, "Want the rest?");
+});
+
+test("cta survives on copy alone but vanishes when wholly empty", () => {
+  assert.ok(normalizeTenant("x", { sections: { cta: { body: "Just words" } } }).cta);
+  assert.equal(normalizeTenant("x", { sections: { cta: { actions: [] } } }).cta, undefined);
+});
