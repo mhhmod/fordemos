@@ -59,3 +59,27 @@ test("stats vanishes when no item is complete", () => {
   const t = normalizeTenant("x", { sections: { stats: { items: [{ label: "x" }] } } });
   assert.equal(t.stats, undefined);
 });
+
+test("findings keeps titled items and auto-numbers missing ranks", () => {
+  const t = normalizeTenant("x", {
+    sections: {
+      findings: {
+        title: "What we found",
+        items: [
+          { title: "First", detail: "Because.", action: "Do this" },
+          { title: "Second", rank: "B" },
+          { detail: "no title" },
+        ],
+      },
+    },
+  });
+  assert.equal(t.findings?.items.length, 2);
+  assert.equal(t.findings?.items[0].rank, "01");
+  assert.equal(t.findings?.items[0].action, "Do this");
+  assert.equal(t.findings?.items[1].rank, "B");
+});
+
+test("findings vanishes with no titled item", () => {
+  const t = normalizeTenant("x", { sections: { findings: { items: [{ detail: "x" }] } } });
+  assert.equal(t.findings, undefined);
+});

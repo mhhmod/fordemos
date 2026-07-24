@@ -14,6 +14,7 @@ export type Dir = "ltr" | "rtl";
 export type SectionKey =
   | "hero"
   | "stats"
+  | "findings"
   | "about"
   | "services"
   | "gallery"
@@ -29,6 +30,12 @@ export interface StatItem {
   value: string;
   note?: string;
   emphasis: boolean;
+}
+export interface FindingItem {
+  rank: string;
+  title: string;
+  detail?: string;
+  action?: string;
 }
 export interface ServiceItem {
   name: string;
@@ -62,6 +69,7 @@ export interface NormalizedTenant {
   order: SectionKey[];
   hero: { headline: string; sub?: string; image?: string; ctas: Cta[] };
   stats?: { title?: string; items: StatItem[] };
+  findings?: { title?: string; items: FindingItem[] };
   about?: { title?: string; body: string };
   services?: { title?: string; items: ServiceItem[] };
   gallery?: { title?: string; images: GalleryImage[] };
@@ -79,6 +87,7 @@ export interface NormalizedTenant {
 const DEFAULT_ORDER: SectionKey[] = [
   "hero",
   "stats",
+  "findings",
   "about",
   "services",
   "gallery",
@@ -199,6 +208,26 @@ export function normalizeTenant(
     ? { title: str(statsObj.title), items: statItems }
     : undefined;
 
+  // findings — only with at least one titled item. `rank` is display order
+  // only, never a severity scale, so it can never drive colour.
+  const findingsObj = obj(sections.findings);
+  const findingItems = asArray(findingsObj.items).flatMap<FindingItem>((it, i) => {
+    const o = obj(it);
+    const title = str(o.title);
+    if (!title) return [];
+    return [
+      {
+        rank: str(o.rank) ?? String(i + 1).padStart(2, "0"),
+        title,
+        detail: str(o.detail),
+        action: str(o.action),
+      },
+    ];
+  });
+  const findings = findingItems.length
+    ? { title: str(findingsObj.title), items: findingItems }
+    : undefined;
+
   // about — only with body copy
   const aboutObj = obj(sections.about);
   const aboutBody = str(aboutObj.body);
@@ -266,6 +295,7 @@ export function normalizeTenant(
     order,
     hero,
     stats,
+    findings,
     about,
     services,
     gallery,
