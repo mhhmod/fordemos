@@ -3,6 +3,10 @@ import type { ReactNode } from "react";
 import { getTenant, type SectionKey } from "@/lib/tenant";
 import { Header } from "@/components/sections/Header";
 import { Hero } from "@/components/sections/Hero";
+import { Stats } from "@/components/sections/Stats";
+import { Findings } from "@/components/sections/Findings";
+import { Breakdown } from "@/components/sections/Breakdown";
+import { Cta } from "@/components/sections/Cta";
 import { About } from "@/components/sections/About";
 import { Services } from "@/components/sections/Services";
 import { Gallery } from "@/components/sections/Gallery";
@@ -27,6 +31,9 @@ export default async function Page() {
   // are null and simply never appear.
   const sections: Record<SectionKey, ReactNode> = {
     hero: <Hero data={d} />,
+    stats: d.stats ? <Stats stats={d.stats} /> : null,
+    findings: d.findings ? <Findings findings={d.findings} /> : null,
+    breakdown: d.breakdown ? <Breakdown breakdown={d.breakdown} /> : null,
     about: d.about ? <About about={d.about} /> : null,
     services: d.services ? <Services services={d.services} /> : null,
     gallery: d.gallery ? <Gallery gallery={d.gallery} /> : null,
@@ -34,6 +41,7 @@ export default async function Page() {
     contact: d.contact ? (
       <Contact contact={d.contact} dir={d.locale.dir} />
     ) : null,
+    cta: d.cta ? <Cta cta={d.cta} /> : null,
   };
 
   return (
