@@ -32,3 +32,30 @@ test("unsafe hrefs are dropped from hero ctas", () => {
   assert.equal(t.hero.ctas.length, 1);
   assert.equal(t.hero.ctas[0].label, "good");
 });
+
+test("stats keeps valid items and drops incomplete ones", () => {
+  const t = normalizeTenant("x", {
+    sections: {
+      stats: {
+        title: "At a glance",
+        items: [
+          { label: "Unavailable", value: "82%", note: "of size options" },
+          { label: "Brands", value: "50", emphasis: true },
+          { label: "No value here" },
+          { value: "no label" },
+          "junk",
+        ],
+      },
+    },
+  });
+  assert.equal(t.stats?.title, "At a glance");
+  assert.equal(t.stats?.items.length, 2);
+  assert.equal(t.stats?.items[0].note, "of size options");
+  assert.equal(t.stats?.items[0].emphasis, false);
+  assert.equal(t.stats?.items[1].emphasis, true);
+});
+
+test("stats vanishes when no item is complete", () => {
+  const t = normalizeTenant("x", { sections: { stats: { items: [{ label: "x" }] } } });
+  assert.equal(t.stats, undefined);
+});

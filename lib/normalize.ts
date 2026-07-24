@@ -13,6 +13,7 @@ import type { RawTheme } from "./tokens";
 export type Dir = "ltr" | "rtl";
 export type SectionKey =
   | "hero"
+  | "stats"
   | "about"
   | "services"
   | "gallery"
@@ -22,6 +23,12 @@ export type SectionKey =
 export interface Cta {
   label: string;
   href: string;
+}
+export interface StatItem {
+  label: string;
+  value: string;
+  note?: string;
+  emphasis: boolean;
 }
 export interface ServiceItem {
   name: string;
@@ -54,6 +61,7 @@ export interface NormalizedTenant {
   demoNote?: string;
   order: SectionKey[];
   hero: { headline: string; sub?: string; image?: string; ctas: Cta[] };
+  stats?: { title?: string; items: StatItem[] };
   about?: { title?: string; body: string };
   services?: { title?: string; items: ServiceItem[] };
   gallery?: { title?: string; images: GalleryImage[] };
@@ -70,6 +78,7 @@ export interface NormalizedTenant {
 
 const DEFAULT_ORDER: SectionKey[] = [
   "hero",
+  "stats",
   "about",
   "services",
   "gallery",
@@ -176,6 +185,20 @@ export function normalizeTenant(
       .slice(0, 3),
   };
 
+  // stats — only with at least one item carrying both a label and a value; a
+  // tile without a value would render an empty frame.
+  const statsObj = obj(sections.stats);
+  const statItems = asArray(statsObj.items).flatMap<StatItem>((it) => {
+    const o = obj(it);
+    const label = str(o.label);
+    const value = str(o.value);
+    if (!label || !value) return [];
+    return [{ label, value, note: str(o.note), emphasis: o.emphasis === true }];
+  });
+  const stats = statItems.length
+    ? { title: str(statsObj.title), items: statItems }
+    : undefined;
+
   // about — only with body copy
   const aboutObj = obj(sections.about);
   const aboutBody = str(aboutObj.body);
@@ -242,6 +265,7 @@ export function normalizeTenant(
     demoNote: str(obj(root.demo).note),
     order,
     hero,
+    stats,
     about,
     services,
     gallery,
