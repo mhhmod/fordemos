@@ -16,12 +16,22 @@ here** — no new cert, no proxy edit, no redeploy.
 
 ## First deploy
 
-```bash
-# on the host
-mkdir -p /srv/grindctrl/data /srv/grindctrl/caddy/data /srv/grindctrl/caddy/config
+Get the code onto the host and run the bootstrap script. It refuses to run if
+anything is already listening on :80/:443, so it never clobbers an existing
+server:
 
-# get the code here (git clone or copy the working tree), then:
-cd deploy
+```bash
+# on the VPS
+git clone -b claude/multi-tenant-demo-dashboard-fh8bt8 https://github.com/mhhmod/fordemos.git
+cd fordemos/deploy
+sudo bash bootstrap.sh
+```
+
+Or do it by hand:
+
+```bash
+mkdir -p /srv/grindctrl/data /srv/grindctrl/caddy/data /srv/grindctrl/caddy/config
+cd fordemos/deploy
 docker compose up -d --build
 ```
 
