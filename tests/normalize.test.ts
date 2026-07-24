@@ -12,7 +12,17 @@ test("an empty record still yields a composed page", () => {
 });
 
 test("malformed input never throws", () => {
-  for (const bad of [null, undefined, 42, "str", [], { sections: 7 }]) {
+  for (const bad of [
+    null,
+    undefined,
+    42,
+    "str",
+    [],
+    { sections: 7 },
+    { sections: { breakdown: { rows: {} } } },
+    { sections: { cta: { actions: "no" } } },
+    { sections: { stats: { items: "no" } } },
+  ]) {
     assert.doesNotThrow(() => normalizeTenant("x", bad));
   }
 });
@@ -143,4 +153,58 @@ test("cta keeps safe actions and drops unsafe ones", () => {
 test("cta survives on copy alone but vanishes when wholly empty", () => {
   assert.ok(normalizeTenant("x", { sections: { cta: { body: "Just words" } } }).cta);
   assert.equal(normalizeTenant("x", { sections: { cta: { actions: [] } } }).cta, undefined);
+});
+
+test("breakdown never lets a row exceed the scale", () => {
+  const t = normalizeTenant("x", {
+    sections: { breakdown: { max: 10, rows: [{ label: "a", value: 85 }] } },
+  });
+  assert.equal(t.breakdown?.max, 85);
+});
+
+test("breakdown vanishes when all rows are zero even with a declared max", () => {
+  const t = normalizeTenant("x", {
+    sections: { breakdown: { max: 100, rows: [{ label: "a", value: 0 }] } },
+  });
+  assert.equal(t.breakdown, undefined);
+});
+
+test("blank strings are not numbers", () => {
+  const t = normalizeTenant("x", {
+    sections: { breakdown: { rows: [{ label: "a", value: "  " }, { label: "b", value: 5 }] } },
+  });
+  assert.equal(t.breakdown?.rows.length, 1);
+  assert.equal(t.breakdown?.rows[0].label, "b");
+});
+
+test("numbers are accepted where a display string is expected", () => {
+  const t = normalizeTenant("x", {
+    sections: {
+      stats: { items: [{ label: "Brands", value: 50 }] },
+      findings: { items: [{ title: "T", rank: 3 }] },
+    },
+  });
+  assert.equal(t.stats?.items[0].value, "50");
+  assert.equal(t.findings?.items[0].rank, "03");
+});
+
+test("cta and hero action lists are both capped at three", () => {
+  const four = [1, 2, 3, 4].map((n) => ({ label: `a${n}`, href: "https://e.com" }));
+  const t = normalizeTenant("x", {
+    sections: { hero: { headline: "h", ctas: four }, cta: { body: "b", actions: four } },
+  });
+  assert.equal(t.hero.ctas.length, 3);
+  assert.equal(t.cta?.actions.length, 3);
+});
+
+test("a cta with only a title carries no ask and vanishes", () => {
+  assert.equal(normalizeTenant("x", { sections: { cta: { title: "Only" } } }).cta, undefined);
+});
+
+test("an inherited object key cannot become a social label", () => {
+  const t = normalizeTenant("x", {
+    sections: { contact: { socials: [{ type: "constructor", href: "https://a.com" }] } },
+  });
+  assert.equal(typeof t.contact?.socials[0].label, "string");
+  assert.equal(t.contact?.socials[0].label, "Constructor");
 });
