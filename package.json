@@ -12,7 +12,8 @@
     "tenant:offline": "tsx scripts/tenant-status.ts offline",
     "tenant:online": "tsx scripts/tenant-status.ts published",
     "tenant:list": "tsx scripts/tenant-list.ts",
-    "test": "node --import tsx --test tests/normalize.test.ts"
+    "test": "node --import tsx --test tests/normalize.test.ts",
+    "audit:shopify": "tsx scripts/audit-shopify.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
