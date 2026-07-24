@@ -49,16 +49,16 @@ cat <<'NEXT'
 Two things remain to go live:
 
   1. DNS — add a wildcard record at your DNS provider:
-         *.grindctrl.cloud   A   <this server's public IP>
+         *.<base domain>   A   <this server's public IP>
      (Caddy then issues each subdomain's TLS certificate automatically.)
 
   2. Onboard the first tenant (data only — no redeploy):
-         docker compose cp ./lokal.json app:/tmp/lokal.json
-         docker compose exec app npm run tenant:upsert -- /tmp/lokal.json
+         docker compose cp ./<slug>.json app:/tmp/tenant.json
+         docker compose exec app npm run tenant:upsert -- /tmp/tenant.json
 
-     It is then live at https://lokal.grindctrl.cloud
+     It is then live at https://<slug>.<base domain>
 
 Manage tenants any time:
      docker compose exec app npm run tenant:list
-     docker compose exec app npm run tenant:offline -- lokal   # instant kill switch
+     docker compose exec app npm run tenant:offline -- <slug>  # instant kill switch
 NEXT
