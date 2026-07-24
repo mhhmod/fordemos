@@ -128,8 +128,22 @@ function str(v: unknown): string | undefined {
 }
 
 function num(v: unknown): number | undefined {
-  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v.trim()) : NaN;
+  if (typeof v === "number") return Number.isFinite(v) ? v : undefined;
+  const s = typeof v === "string" ? v.trim() : "";
+  if (!s) return undefined;
+  const n = Number(s);
   return Number.isFinite(n) ? n : undefined;
+}
+
+/** Shared cap for label+href action lists (hero ctas, cta actions). */
+function ctaList(v: unknown): Cta[] {
+  return asArray(v)
+    .flatMap<Cta>((c) => {
+      const label = str(obj(c).label);
+      const href = safeUrl(obj(c).href);
+      return label && href ? [{ label, href }] : [];
+    })
+    .slice(0, 3);
 }
 
 function asArray(v: unknown): unknown[] {
@@ -201,13 +215,7 @@ export function normalizeTenant(
     headline: str(heroObj.headline) ?? tagline ?? name,
     sub: str(heroObj.sub),
     image: safeUrl(heroObj.image),
-    ctas: asArray(heroObj.ctas)
-      .flatMap((c) => {
-        const label = str(obj(c).label);
-        const href = safeUrl(obj(c).href);
-        return label && href ? [{ label, href }] : [];
-      })
-      .slice(0, 3),
+    ctas: ctaList(heroObj.ctas),
   };
 
   // stats — only with at least one item carrying both a label and a value; a
@@ -216,7 +224,7 @@ export function normalizeTenant(
   const statItems = asArray(statsObj.items).flatMap<StatItem>((it) => {
     const o = obj(it);
     const label = str(o.label);
-    const value = str(o.value);
+    const value = str(o.value) ?? num(o.value)?.toString();
     if (!label || !value) return [];
     return [{ label, value, note: str(o.note), emphasis: o.emphasis === true }];
   });
@@ -233,7 +241,10 @@ export function normalizeTenant(
     if (!title) return [];
     return [
       {
-        rank: str(o.rank) ?? String(i + 1).padStart(2, "0"),
+        rank:
+          str(o.rank) ??
+          num(o.rank)?.toString().padStart(2, "0") ??
+          String(i + 1).padStart(2, "0"),
         title,
         detail: str(o.detail),
         action: str(o.action),
@@ -256,10 +267,9 @@ export function normalizeTenant(
   });
   const declaredMax = num(breakdownObj.max);
   const derivedMax = breakdownRows.reduce((m, r) => Math.max(m, r.value), 0);
-  const breakdownMax =
-    declaredMax !== undefined && declaredMax > 0 ? declaredMax : derivedMax;
+  const breakdownMax = Math.max(declaredMax ?? 0, derivedMax);
   const breakdown =
-    breakdownRows.length && breakdownMax > 0
+    breakdownRows.length && derivedMax > 0
       ? {
           title: str(breakdownObj.title),
           note: str(breakdownObj.note),
@@ -273,15 +283,9 @@ export function normalizeTenant(
   const ctaObj = obj(sections.cta);
   const ctaTitle = str(ctaObj.title);
   const ctaBody = str(ctaObj.body);
-  const ctaActions = asArray(ctaObj.actions)
-    .flatMap<Cta>((a) => {
-      const label = str(obj(a).label);
-      const href = safeUrl(obj(a).href);
-      return label && href ? [{ label, href }] : [];
-    })
-    .slice(0, 3);
+  const ctaActions = ctaList(ctaObj.actions);
   const cta =
-    ctaTitle || ctaBody || ctaActions.length
+    ctaBody || ctaActions.length
       ? { title: ctaTitle, body: ctaBody, actions: ctaActions }
       : undefined;
 
@@ -335,7 +339,7 @@ export function normalizeTenant(
     const href = safeUrl(obj(x).href);
     if (!href) return [];
     const type = (str(obj(x).type) ?? "website").toLowerCase();
-    const label = str(obj(x).label) ?? SOCIAL_LABELS[type] ?? titleCase(type);
+    const label = str(obj(x).label) ?? str(SOCIAL_LABELS[type]) ?? titleCase(type);
     return [{ type, href, label }];
   });
   const contact =
