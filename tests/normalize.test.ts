@@ -272,3 +272,20 @@ test("breakdown carries an optional display unit", () => {
     undefined,
   );
 });
+
+test("same-page anchors are usable but anything odd is not", () => {
+  const t = normalizeTenant("x", {
+    sections: {
+      hero: {
+        headline: "h",
+        ctas: [
+          { label: "jump", href: "#compare" },
+          { label: "bad", href: "#javascript:alert(1)" },
+          { label: "worse", href: "javascript:alert(1)" },
+        ],
+      },
+    },
+  });
+  assert.equal(t.hero.ctas.length, 1);
+  assert.equal(t.hero.ctas[0].href, "#compare");
+});

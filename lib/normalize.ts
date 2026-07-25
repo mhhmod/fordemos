@@ -190,6 +190,8 @@ export function safeUrl(v: unknown): string | undefined {
   const s = str(v);
   if (!s) return undefined;
   if (s.startsWith("/") && !s.startsWith("//")) return s; // root-relative
+  // Same-page anchor, so a record can link to its own sections.
+  if (/^#[\w-]+$/.test(s)) return s;
   try {
     const u = new URL(s);
     if (["http:", "https:", "mailto:", "tel:"].includes(u.protocol)) return s;
