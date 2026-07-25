@@ -5,6 +5,58 @@
 
 import { isValidHex, isDark, onColor } from "./color";
 
+// A layout preset is the page's skeleton: how wide the measure runs, how much
+// air sits between sections, how labels are set, what shape pictures take, how
+// heavy the rules are. A brand picks one in its record and the whole page
+// re-composes — no new component, no new build.
+export type LayoutName = "editorial" | "technical" | "retail";
+
+const LAYOUTS: Record<LayoutName, Record<string, string>> = {
+  // Generous, quiet, print-like. Suits craft and considered product.
+  editorial: {
+    "--measure": "58rem",
+    "--rhythm": "clamp(4.5rem, 11vw, 8rem)",
+    "--label-case": "none",
+    "--label-track": "0.01em",
+    "--label-size": "0.95rem",
+    "--img-ratio": "3 / 4",
+    "--rule": "1px",
+    "--display-min": "2.4rem",
+    "--display-max": "4.6rem",
+    "--gutter": "2.5rem",
+  },
+  // Dense, gridded, instrument-like. Suits performance and technical product.
+  technical: {
+    "--measure": "74rem",
+    "--rhythm": "clamp(3rem, 7vw, 5rem)",
+    "--label-case": "uppercase",
+    "--label-track": "0.18em",
+    "--label-size": "0.7rem",
+    "--img-ratio": "1 / 1",
+    "--rule": "2px",
+    "--display-min": "2rem",
+    "--display-max": "3.6rem",
+    "--gutter": "1rem",
+  },
+  // Card-led and busy, the shape of a marketplace with many labels.
+  retail: {
+    "--measure": "66rem",
+    "--rhythm": "clamp(3.5rem, 8vw, 6rem)",
+    "--label-case": "uppercase",
+    "--label-track": "0.1em",
+    "--label-size": "0.75rem",
+    "--img-ratio": "4 / 5",
+    "--rule": "1px",
+    "--display-min": "2.25rem",
+    "--display-max": "4rem",
+    "--gutter": "1.5rem",
+  },
+};
+
+export function layoutName(v: unknown): LayoutName {
+  return v === "editorial" || v === "technical" ? v : "retail";
+}
+
 export interface RawTheme {
   palette?: {
     primary?: string;
@@ -18,6 +70,7 @@ export interface RawTheme {
   };
   font?: { heading?: string; body?: string; url?: string };
   radius?: string | number;
+  layout?: string;
 }
 
 const SANS_FALLBACK =
@@ -51,6 +104,7 @@ function safeFontUrl(u?: string): string | undefined {
 export interface ThemeResult {
   vars: Record<string, string>;
   fontUrl?: string;
+  layout: LayoutName;
 }
 
 export function buildTheme(theme: RawTheme | undefined): ThemeResult {
@@ -93,5 +147,10 @@ export function buildTheme(theme: RawTheme | undefined): ThemeResult {
   const radius = cleanRadius(theme?.radius);
   if (radius) vars["--radius"] = radius;
 
-  return { vars, fontUrl: safeFontUrl(theme?.font?.url) };
+  // The skeleton. Applied first so an explicit value in the record could still
+  // override any single one of these later if that ever becomes useful.
+  const layout = layoutName(theme?.layout);
+  Object.assign(vars, LAYOUTS[layout]);
+
+  return { vars, fontUrl: safeFontUrl(theme?.font?.url), layout };
 }

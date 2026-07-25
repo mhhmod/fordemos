@@ -29,6 +29,19 @@
     "Tahoma", sans-serif;
 
   --radius: 18px;
+
+  /* Layout-preset defaults. buildTheme() overrides these per tenant; they exist
+     so a page rendered without a tenant still has a composed skeleton. */
+  --measure: 66rem;
+  --rhythm: clamp(3.5rem, 8vw, 6rem);
+  --label-case: uppercase;
+  --label-track: 0.1em;
+  --label-size: 0.75rem;
+  --img-ratio: 4 / 5;
+  --rule: 1px;
+  --display-min: 2.25rem;
+  --display-max: 4rem;
+  --gutter: 1.5rem;
 }
 
 @layer base {

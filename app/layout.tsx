@@ -47,9 +47,9 @@ export default async function RootLayout({
   const published = !!t && t.status === "published";
 
   const locale = published ? t!.data.locale : { lang: "en", dir: "ltr" as const };
-  const theme = published
-    ? buildTheme(t!.data.theme)
-    : { vars: {}, fontUrl: undefined };
+  // Unpublished still gets the neutral preset rather than an empty object, so
+  // the skeleton variables are always defined.
+  const theme = buildTheme(published ? t!.data.theme : undefined);
 
   return (
     <html

@@ -1,8 +1,14 @@
 import type { NormalizedTenant } from "@/lib/tenant";
-import { Section, SectionTitle } from "@/components/Section";
+import { Section, SectionTitle, Label } from "@/components/Section";
 
-// Ranked observations. The rank is editorial order, never a severity scale, so
-// it is rendered as a numeral in the accent token rather than a traffic light.
+// Ranked observations. An item carrying a picture becomes a full editorial row
+// with the photograph alternating sides; items without one stay a tight
+// numbered list. Both shapes can sit in the same section, so a record can
+// illustrate only the findings worth illustrating.
+//
+// The rank is editorial order, never a severity scale, so it is set in the
+// accent token rather than a traffic light.
+
 export function Findings({
   findings,
 }: {
@@ -11,33 +17,62 @@ export function Findings({
   return (
     <Section>
       {findings.title ? <SectionTitle>{findings.title}</SectionTitle> : null}
-      <ol className={findings.title ? "mt-10" : ""}>
-        {findings.items.map((item, i) => (
-          <li
-            key={i}
-            className="flex gap-5 border-t border-line py-7 first:border-t-0 first:pt-0"
-          >
-            <span
-              aria-hidden="true"
-              className="shrink-0 pt-1 font-heading text-sm font-bold tabular-nums text-accent"
-            >
-              {item.rank}
-            </span>
-            <div className="min-w-0">
+      <ol
+        className={`flex flex-col gap-[var(--gutter)] ${
+          findings.title ? "mt-10" : ""
+        }`}
+      >
+        {findings.items.map((item, i) => {
+          const body = (
+            <div className="flex min-w-0 flex-col gap-2">
+              <Label className="!text-accent">{item.rank}</Label>
               <h3 className="font-heading text-lg font-semibold break-words text-fg">
                 {item.title}
               </h3>
               {item.detail ? (
-                <p className="mt-2 break-words leading-relaxed text-muted">{item.detail}</p>
+                <p className="max-w-prose break-words leading-relaxed text-muted">
+                  {item.detail}
+                </p>
               ) : null}
               {item.action ? (
-                <p className="mt-3 break-words text-sm font-medium text-accent">
+                <p className="mt-1 text-sm font-medium break-words text-accent">
                   {item.action}
                 </p>
               ) : null}
             </div>
-          </li>
-        ))}
+          );
+
+          if (item.image) {
+            return (
+              <li
+                key={i}
+                className="grid items-center gap-[var(--gutter)] border-t border-line pt-[var(--gutter)] first:border-t-0 first:pt-0 lg:grid-cols-2"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.image}
+                  alt=""
+                  aria-hidden
+                  loading="lazy"
+                  className={`w-full rounded-[var(--radius)] object-cover ${
+                    i % 2 ? "lg:order-last" : ""
+                  }`}
+                  style={{ aspectRatio: "var(--img-ratio)" }}
+                />
+                {body}
+              </li>
+            );
+          }
+
+          return (
+            <li
+              key={i}
+              className="border-t border-line pt-[var(--gutter)] first:border-t-0 first:pt-0"
+            >
+              {body}
+            </li>
+          );
+        })}
       </ol>
     </Section>
   );

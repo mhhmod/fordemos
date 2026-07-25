@@ -47,6 +47,14 @@ export interface FindingItem {
   title: string;
   detail?: string;
   action?: string;
+  image?: string;
+}
+
+/** One of a fixed set, or the given fallback. Variants are structure, so an
+ *  unknown value must never reach a component. */
+function oneOf<T extends string>(v: unknown, allowed: readonly T[], fallback: T): T {
+  const v2 = str(v);
+  return (allowed as readonly string[]).includes(v2 ?? "") ? (v2 as T) : fallback;
 }
 export interface BreakdownRow {
   label: string;
@@ -83,8 +91,14 @@ export interface NormalizedTenant {
   theme: RawTheme;
   demoNote?: string;
   order: SectionKey[];
-  hero: { headline: string; sub?: string; image?: string; ctas: Cta[] };
-  stats?: { title?: string; items: StatItem[] };
+  hero: {
+    headline: string;
+    sub?: string;
+    image?: string;
+    variant: "banner" | "split" | "stack";
+    ctas: Cta[];
+  };
+  stats?: { title?: string; variant: "tiles" | "band"; items: StatItem[] };
   findings?: { title?: string; items: FindingItem[] };
   breakdown?: {
     title?: string;
@@ -110,7 +124,11 @@ export interface NormalizedTenant {
   cta?: { title?: string; body?: string; actions: Cta[] };
   about?: { title?: string; body: string };
   services?: { title?: string; items: ServiceItem[] };
-  gallery?: { title?: string; images: GalleryImage[] };
+  gallery?: {
+    title?: string;
+    variant: "grid" | "mosaic" | "strip";
+    images: GalleryImage[];
+  };
   hours?: { title?: string; rows: HoursRow[] };
   contact?: {
     title?: string;
@@ -248,6 +266,11 @@ export function normalizeTenant(
     headline: str(heroObj.headline) ?? tagline ?? name,
     sub: str(heroObj.sub),
     image: safeUrl(heroObj.image),
+    variant: oneOf(
+      heroObj.variant,
+      ["banner", "split", "stack"] as const,
+      safeUrl(heroObj.image) ? "banner" : "stack",
+    ),
     ctas: ctaList(heroObj.ctas),
   };
 
@@ -262,7 +285,11 @@ export function normalizeTenant(
     return [{ label, value, note: str(o.note), emphasis: o.emphasis === true }];
   });
   const stats = statItems.length
-    ? { title: str(statsObj.title), items: statItems }
+    ? {
+        title: str(statsObj.title),
+        variant: oneOf(statsObj.variant, ["tiles", "band"] as const, "tiles"),
+        items: statItems,
+      }
     : undefined;
 
   // findings — only with at least one titled item. `rank` is display order
@@ -274,6 +301,7 @@ export function normalizeTenant(
     if (!title) return [];
     return [
       {
+        image: safeUrl(o.image),
         rank:
           str(o.rank) ??
           num(o.rank)?.toString().padStart(2, "0") ??
@@ -395,7 +423,15 @@ export function normalizeTenant(
     return [{ src, alt: str(obj(im).alt) ?? "" }];
   });
   const gallery = galleryImages.length
-    ? { title: str(galleryObj.title), images: galleryImages }
+    ? {
+        title: str(galleryObj.title),
+        variant: oneOf(
+          galleryObj.variant,
+          ["grid", "mosaic", "strip"] as const,
+          "grid",
+        ),
+        images: galleryImages,
+      }
     : undefined;
 
   // hours — only with at least one complete row
