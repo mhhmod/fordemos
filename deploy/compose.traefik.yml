@@ -11,7 +11,10 @@
 # No tenant identifier appears in this file. The hostnames served are deployment
 # configuration, supplied via deploy/.env (git-ignored) — see .env.example.
 # Adding a tenant is still a record; adding a tenant on a NEW hostname also
-# means extending DEMO_ROUTER_RULE and `docker compose up -d` (no rebuild).
+# means appending to DEMO_HOSTS, regenerating routers and `up -d` (no rebuild):
+#
+#   sh gen-routers.sh > compose.routers.yml
+#   docker compose -f compose.traefik.yml -f compose.routers.yml up -d
 name: grindctrl-demos
 
 services:
@@ -33,11 +36,8 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: "${PROXY_NETWORK:?set PROXY_NETWORK in deploy/.env}"
-      traefik.http.routers.grindctrl-demos.rule: "${DEMO_ROUTER_RULE:?set DEMO_ROUTER_RULE in deploy/.env}"
-      traefik.http.routers.grindctrl-demos.entrypoints: "web,websecure"
-      traefik.http.routers.grindctrl-demos.tls: "true"
-      traefik.http.routers.grindctrl-demos.tls.certresolver: "${ACME_RESOLVER:?set ACME_RESOLVER in deploy/.env}"
-      traefik.http.routers.grindctrl-demos.priority: "10"
+      # Routers are generated one-per-hostname into compose.routers.yml, so each
+      # host gets its own certificate. See gen-routers.sh for why.
       traefik.http.services.grindctrl-demos.loadbalancer.server.port: "3000"
     restart: unless-stopped
 
