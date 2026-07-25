@@ -52,8 +52,12 @@ export default async function Page() {
     <>
       <Header brand={d.brand} cta={d.hero.ctas[0]} />
       <main>
+        {/* The section key doubles as an anchor, so a record can link to its
+            own sections (e.g. a hero CTA pointing at "#compare"). */}
         {d.order.map((key) => (
-          <div key={key}>{sections[key]}</div>
+          <div key={key} id={key}>
+            {sections[key]}
+          </div>
         ))}
       </main>
       <Footer name={d.brand.name} />
