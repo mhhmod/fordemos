@@ -9,7 +9,7 @@ import { isValidHex, isDark, onColor } from "./color";
 // air sits between sections, how labels are set, what shape pictures take, how
 // heavy the rules are. A brand picks one in its record and the whole page
 // re-composes — no new component, no new build.
-export type LayoutName = "editorial" | "technical" | "retail";
+export type LayoutName = "editorial" | "technical" | "retail" | "portal";
 
 const LAYOUTS: Record<LayoutName, Record<string, string>> = {
   // Generous, quiet, print-like. Suits craft and considered product.
@@ -51,10 +51,24 @@ const LAYOUTS: Record<LayoutName, Record<string, string>> = {
     "--display-max": "4rem",
     "--gutter": "1.5rem",
   },
+  // Wide, calm and image-led. Suits property, travel and other marketplaces
+  // where inventory evidence needs room without taking on retail-card density.
+  portal: {
+    "--measure": "72rem",
+    "--rhythm": "clamp(3.75rem, 8vw, 6.5rem)",
+    "--label-case": "none",
+    "--label-track": "0.03em",
+    "--label-size": "0.8rem",
+    "--img-ratio": "16 / 10",
+    "--rule": "1px",
+    "--display-min": "2.35rem",
+    "--display-max": "4.35rem",
+    "--gutter": "clamp(1rem, 2.5vw, 2rem)",
+  },
 };
 
 export function layoutName(v: unknown): LayoutName {
-  return v === "editorial" || v === "technical" ? v : "retail";
+  return v === "editorial" || v === "technical" || v === "portal" ? v : "retail";
 }
 
 export interface RawTheme {
